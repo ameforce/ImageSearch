@@ -4,9 +4,12 @@
 해당 라이브러리를 사용하기 위해선 다음과 같은 준비물이 필요합니다.<br><br>
 python 3.8 이상<br>
 pyautogui 라이브러리<br><br>
+pyautogui를 설치하기 위해선 아래의 커맨드를 입력하세요.<br>
+pip install pyautogui<br>
 ### English<br>
 This library is easier to use than the existing pyautogui image search.<br>
 The following materials are required to use the library:<br><br>
 python 3.8 or higher<br>
-pyautogui library<br>
-<br>
+pyautogui library<br><br>
+Enter the command below to install pyautogui.<br>
+pip install pyautogui<br>
