@@ -33,6 +33,7 @@ class ImageSearch:
 
     def image_search_windows(self, image_name, loop_status=False, click_status=True, click_button='left',
                              confidence=0.95):
+        self.__init__()
         route = 'images/' + image_name + '.png'
         print(f'{image_name} detecting...')
         while True:
