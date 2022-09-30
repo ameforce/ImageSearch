@@ -14,11 +14,11 @@ class ImageSearch:
 
     def image_search_mac(self, image_name, loop_status=False, click_status=True, click_button='left', confidence=0.85):
         route = 'images/' + image_name + '.png'
-        print(f'{image_name} detecting...')
+        print(f'{image_name} detecting...', end='')
         while True:
             pos = pyautogui.locateOnScreen(route, confidence=confidence, grayscale=True)
             if pos is not None:
-                print(f'{image_name} detection successful.')
+                print('successful')
                 self.detection_status = True
                 pos_center = pyautogui.center(pos)
                 self.pos_center = [pos_center[0] / 2, pos_center[1] / 2]
@@ -28,6 +28,8 @@ class ImageSearch:
                     else:
                         pyautogui.rightClick(self.pos_center)
                 break
+            else:
+                print('failure')
             if not loop_status:
                 break
 
@@ -35,11 +37,12 @@ class ImageSearch:
                              confidence=0.95):
         self.__init__()
         route = 'images/' + image_name + '.png'
-        print(f'{image_name} detecting...')
+        failure_count = 0
         while True:
+            print(f'{image_name} detecting...', end='')
             pos = pyautogui.locateOnScreen(route, confidence=confidence, grayscale=True)
             if pos is not None:
-                print(f'{image_name} detection successful.')
+                print(f'successful [{failure_count}]')
                 self.detection_status = True
                 self.pos_center = pyautogui.center(pos)
                 if click_status:
@@ -48,8 +51,14 @@ class ImageSearch:
                     else:
                         pyautogui.rightClick(self.pos_center)
                 break
-            if not loop_status:
-                break
+            else:
+                failure_count += 1
+                print(f'failure [{failure_count}]', end='')
+                if loop_status:
+                    print('\r', end='')
+                else:
+                    print()
+                    break
 
     def image_search_twice(self, os_type, image_name01, image_name02, loop_status=False, click_status=True,
                            click_button='left', confidence=0.85):
