@@ -1,5 +1,8 @@
 # Pycharm
 .idea/
 
-# python
+# Python
 __pycache__/
+
+# Test
+test.py
