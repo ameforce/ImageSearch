@@ -1,3 +1,4 @@
+from lib.LogManager.LogManager import LogManager
 import multiprocessing
 import pyautogui
 import platform
@@ -9,12 +10,13 @@ import time
 class ImageSearch:
     def __init__(self, default_path: str = None):
         self.default_path = default_path
-        self.pos = None
+        self.__pos = None
         self.detection_status = False
         self.os_type = None, self.determine_os()
+        self.loger = LogManager(real_time_mode=True)
 
     def get_pos(self):
-        return self.pos
+        return self.__pos
 
     def get_detection_status(self):
         return self.detection_status
@@ -23,7 +25,7 @@ class ImageSearch:
         self.os_type = platform.system()
         return
 
-    def recombination_path(self, image_name: str) -> str:
+    def __recombination_path(self, image_name: str) -> str:
         if self.default_path is None:
             image_path = image_name
         else:
@@ -65,18 +67,28 @@ class ImageSearch:
         param_list.pop(0)
         return param_list
 
+    @staticmethod
+    def __is_exist_file(file_path: str) -> bool and (str or None):
+        if os.path.exists(file_path):
+            return True
+        return False
+
     def single_image_search(self, image_name: str or list[str],
                             click_status: bool, click_button: str, confidence: float) -> bool:
         self.detection_status = False
-        image_path = self.recombination_path(image_name)
-        self.pos = pyautogui.locateCenterOnScreen(image_path, confidence=confidence, grayscale=True)
-        if self.pos is not None:
+        image_path = self.__recombination_path(image_name)
+        if not os.path.exists(image_path):
+            print(f'ERROR: File [{image_path}] does not exist')
+            return False
+        # __pos는 multiprocess에서 값을 대입 시 타 프로세스에서 참조하지 못함. 개선 필요.
+        self.__pos = pyautogui.locateCenterOnScreen(image_path, confidence=confidence, grayscale=True)
+        if self.__pos is not None:
             self.detection_status = True
             if click_status:
                 if click_button == 'left':
-                    pyautogui.leftClick(self.pos)
+                    pyautogui.leftClick(self.__pos)
                 else:
-                    pyautogui.rightClick(self.pos)
+                    pyautogui.rightClick(self.__pos)
             return True
         return False
 
@@ -93,7 +105,6 @@ class ImageSearch:
                     print(f'\t[{detect_result[i]}]')
             else:
                 print()
-
         return
 
     def image_search(self, image_name: str or list[str],
@@ -105,6 +116,7 @@ class ImageSearch:
             param = ImageSearch.__recombination_param(image_name, click_status, click_button, confidence)
             loop_status_list = ImageSearch.__listify_param(loop_status, len(image_name))
             pool = multiprocessing.Pool()
+            return_result_list = []
             while True:
                 # 한 턴 마다 cls를 하고 그 동안은 각 프로세스에서 stdout을 하면 어떨까? 해 볼만한 가치가 있을 것 같아.
                 self.__print_image_status(image_name, False)
@@ -112,26 +124,22 @@ class ImageSearch:
                 self.__print_image_status(image_name, True, result_list)
 
                 # Remove lists that don't require repetitive work.
-                temp_image_list = image_name
-                if True in result_list or False in loop_status_list:
-                    while True:
-                        print(f'before entry: {param}')
-                        time.sleep(5)
-                        if len(temp_image_list) == 0:
-                            break
-                        for i in range(len(temp_image_list)):
-                            if result_list[i] or not loop_status_list[i]:
-                                temp_image_list.pop(i)
-                                param.pop(i)
-                                loop_status_list.pop(i)
-                                break
-                        print(f'after entry: {param}') # 지금 result_list는 팝이 되지 않아서 result_list 기준으로 계속 지워지고 반복되고 있음
-                        # 개선이 필요함.
-                        time.sleep(5)
-                if len(temp_image_list) == 0:
-                    break
-            pool.close()
-            pool.join()
+                if True in result_list:
+                    pool.close()
+                    pool.join()
+                    return result_list
+                # temp_image_list = image_name
+                # if True in result_list or False in loop_status_list:
+                #     for i in range(len(temp_image_list)):
+                #         if result_list[i] or not loop_status_list[i]:
+                #             return_result_list.append(result_list[i])
+                #             temp_image_list.pop(i)
+                #             param.pop(i)
+                #             loop_status_list.pop(i)
+                #             break
+            # pool.close()
+            # pool.join()
+            # return return_result_list
         else:
             while True:
                 print(f'{image_name} detecting...\t')
