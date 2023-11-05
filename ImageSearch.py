@@ -1,3 +1,4 @@
+from lib.LogManager.LogManager import LogManager
 import multiprocessing
 import pyautogui
 import platform
@@ -12,6 +13,7 @@ class ImageSearch:
         self.__pos = None
         self.detection_status = False
         self.os_type = None, self.determine_os()
+        self.loger = LogManager(real_time_mode=True)
 
     def get_pos(self):
         return self.__pos
